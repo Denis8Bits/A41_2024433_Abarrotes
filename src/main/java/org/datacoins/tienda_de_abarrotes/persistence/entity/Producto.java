@@ -3,20 +3,30 @@ package org.datacoins.tienda_de_abarrotes.persistence.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity(name = "Productos")
-
-//Lombok
-@Data //Getters y Setters
+@Entity
+@Table(name = "Productos") // Nombre exacto de la tabla (con mayúscula inicial)
+// Lombok
+@Data // Getters y Setters
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-@EqualsAndHashCode //Codigo de autenticacion de la entidad
-
+@EqualsAndHashCode // Código de autenticación de la entidad
 public class Producto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "codigoProducto") // Importante, renombra a camelcase xd
     private Integer codigoProducto;
-    @Column
-    private double precioP;
+
+    @Column(name = "nombreProducto")
+    private String nombreProducto;
+
+    @Column(name = "descripcionProducto")
+    private String descripcionProducto;
+
+    @Column(name = "precioProducto")
+    private double precioProducto;
+
+    @Column(name = "stock")
     private Integer stock;
 }
