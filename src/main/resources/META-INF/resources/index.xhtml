@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Tienda de Abarrotes - Sistema de Gestión</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/themes/primeone-dark.css"/>
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .welcome-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+    </style>
+</h:head>
+<h:body>
+    <div class="card">
+        <h:form id="formulario-principal">
+            <!-- Mensaje emergente -->
+            <p:growl id="mensaje_emergente" showDetails="true"/>
+
+            <!-- Barra de menú principal -->
+            <div class="card">
+                <p:menubar>
+                    <p:menuitem value="Inicio" icon="pi pi-fw pi-home"
+                                actionListener="#{indexController.cargarDashboard}"
+                                update=":formulario-principal"/>
+
+                    <p:menuitem value="Productos" icon="pi pi-fw pi-box"
+                                outcome="productos"/>
+
+                    <p:menuitem value="Compras" icon="pi pi-fw pi-shopping-cart"
+                                outcome="compras"/>
+
+                    <p:menuitem value="Reportes" icon="pi pi-fw pi-chart-bar">
+                        <p:menuitem value="Ventas del Día" icon="pi pi-fw pi-calendar"
+                                    actionListener="#{indexController.mostrarVentasHoy}"/>
+                        <p:menuitem value="Productos Más Vendidos" icon="pi pi-fw pi-star"
+                                    actionListener="#{indexController.mostrarProductosPopulares}"/>
+                        <p:menuitem value="Stock Bajo" icon="pi pi-fw pi-exclamation-triangle"
+                                    actionListener="#{indexController.mostrarStockBajo}"/>
+                    </p:menuitem>
+                </p:menubar>
+            </div>
+
+            <!-- Header de bienvenida -->
+            <div class="welcome-header text-center">
+                <h1 class="m-0">🏪 Tienda de Abarrotes</h1>
+                <h3 class="mt-2 mb-0">Sistema de Gestión Integral</h3>
+                <p class="mt-2 mb-0">
+                    <i class="pi pi-calendar"></i>
+                    Hoy: #{indexController.fechaActual}
+                </p>
+            </div>
+
+            <!-- Dashboard con estadísticas -->
+            <div class="grid">
+                <!-- Card: Total Productos -->
+                <div class="col-12 md:col-6 lg:col-3">
+                    <div class="card dashboard-card bg-blue-500 text-white text-center"
+                         onclick="location.href='productos.xhtml'">
+                        <div class="card-content">
+                            <div class="stat-number">#{indexController.totalProductos}</div>
+                            <div class="text-lg">
+                                <i class="pi pi-box mr-2"></i>Productos
+                            </div>
+                            <small>Registrados en inventario</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Compras Hoy -->
+                <div class="col-12 md:col-6 lg:col-3">
+                    <div class="card dashboard-card bg-green-500 text-white text-center"
+                         onclick="location.href='compras.xhtml'">
+                        <div class="card-content">
+                            <div class="stat-number">#{indexController.comprasHoy}</div>
+                            <div class="text-lg">
+                                <i class="pi pi-shopping-cart mr-2"></i>Ventas Hoy
+                            </div>
+                            <small>Transacciones del día</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Stock Bajo -->
+                <div class="col-12 md:col-6 lg:col-3">
+                    <div class="card dashboard-card bg-orange-500 text-white text-center">
+                        <div class="card-content">
+                            <div class="stat-number">#{indexController.productosStockBajo}</div>
+                            <div class="text-lg">
+                                <i class="pi pi-exclamation-triangle mr-2"></i>Stock Bajo
+                            </div>
+                            <small>Productos con menos de 10 unidades</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: Ingresos Hoy -->
+                <div class="col-12 md:col-6 lg:col-3">
+                    <div class="card dashboard-card bg-purple-500 text-white text-center">
+                        <div class="card-content">
+                            <div class="stat-number">
+                                <h:outputText value="#{indexController.ingresosHoy}">
+                                    <f:convertNumber type="currency" currencySymbol="$"/>
+                                </h:outputText>
+                            </div>
+                            <div class="text-lg">
+                                <i class="pi pi-money-bill mr-2"></i>Ingresos
+                            </div>
+                            <small>Ventas del día</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección de accesos rápidos -->
+            <div class="grid mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <h3 class="text-center mb-4">
+                            <i class="pi pi-bolt mr-2"></i>Accesos Rápidos
+                        </h3>
+                        <div class="flex flex-wrap justify-content-center gap-3">
+                            <p:commandButton value="Nuevo Producto"
+                                             icon="pi pi-plus"
+                                             class="ui-button-primary ui-button-lg"
+                                             outcome="productos"
+                                             styleClass="mr-2"/>
+
+                            <p:commandButton value="Nueva Venta"
+                                             icon="pi pi-shopping-cart"
+                                             class="ui-button-success ui-button-lg"
+                                             outcome="compras"
+                                             styleClass="mr-2"/>
+
+                            <p:commandButton value="Ver Inventario"
+                                             icon="pi pi-list"
+                                             class="ui-button-info ui-button-lg"
+                                             outcome="productos"
+                                             styleClass="mr-2"/>
+
+                            <p:commandButton value="Stock Crítico"
+                                             icon="pi pi-exclamation-triangle"
+                                             class="ui-button-warning ui-button-lg"
+                                             actionListener="#{indexController.mostrarStockBajo}"
+                                             update="@form"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de productos con stock bajo (si hay) -->
+            <div class="grid mt-4" style="#{indexController.productosStockBajo == 0 ? 'display: none;' : ''}">
+                <div class="col-12">
+                    <div class="card">
+                        <h4 class="text-orange-600">
+                            <i class="pi pi-exclamation-triangle mr-2"></i>
+                            Productos con Stock Bajo (menos de 10 unidades)
+                        </h4>
+                        <p:dataTable value="#{indexController.productosConStockBajo}"
+                                     var="producto"
+                                     emptyMessage="No hay productos con stock bajo">
+                            <p:column headerText="Producto">
+                                <h:outputText value="#{producto.nombreProducto}"/>
+                            </p:column>
+                            <p:column headerText="Stock Actual">
+                                <h:outputText value="#{producto.stock}"
+                                              class="text-red-600 font-bold"/>
+                            </p:column>
+                            <p:column headerText="Precio">
+                                <h:outputText value="#{producto.precioProducto}">
+                                    <f:convertNumber type="currency" currencySymbol="$"/>
+                                </h:outputText>
+                            </p:column>
+                        </p:dataTable>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer con información adicional -->
+            <div class="card mt-4 text-center bg-gray-100">
+                <p class="m-0">
+                    <strong>Sistema desarrollado para gestión eficiente de tiendas de abarrotes</strong><br/>
+                    <small class="text-gray-600">
+                        Versión 1.0 - © 2024 |
+                        <i class="pi pi-calendar"></i> Última actualización: #{indexController.fechaActual}
+                    </small>
+                </p>
+            </div>
+        </h:form>
+    </div>
+</h:body>
+</html>

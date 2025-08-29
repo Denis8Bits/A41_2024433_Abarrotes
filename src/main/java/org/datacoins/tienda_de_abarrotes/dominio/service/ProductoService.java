@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service // AGREGADO: Anotación @Service para que Spring lo reconozca como un bean
+@Service
 public class ProductoService implements IProductoService {
 
     // Inyección de dependencias del repositorio (ProductoCrud)
@@ -21,8 +21,8 @@ public class ProductoService implements IProductoService {
     }
 
     @Override
-    public Producto buscarProductoPorId(Integer codigo) { // CORREGIDO: Parámetro debe ser Integer, no Producto
-        return crud.findById(codigo).orElse(null); // CORREGIDO: findById en lugar de findAllById
+    public Producto buscarProductoPorId(Integer codigo) {
+        return crud.findById(codigo).orElse(null);
     }
 
     @Override

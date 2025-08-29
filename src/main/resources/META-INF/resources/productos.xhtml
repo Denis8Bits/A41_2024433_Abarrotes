@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Tienda Abarrotes - Productos</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/themes/primeone-dark.css"/>
+</h:head>
+<h:body>
+    <div class="card">
+        <h:form id="formulario-productos">
+            <!-- Mensaje emergente -->
+            <p:growl id="mensaje_emergente" showDetails="true"/>
+
+            <!-- Barra de menus -->
+            <div class="card">
+                <p:menubar>
+                    <p:menuitem value="Inicio" icon="pi pi-fw pi-home"
+                                outcome="index"/>
+
+                    <p:menuitem value="Productos" icon="pi pi-fw pi-box"
+                                update=":formulario-productos:tabla-productos"
+                                actionListener="#{productosController.cargarDatos}"/>
+
+                    <p:menuitem value="Nuevo Producto" icon="pi pi-fw pi-plus"
+                                actionListener="#{productosController.agregarProducto}"
+                                update=":formulario-modal:ventana-producto"
+                                oncomplete="PF('VentanaModalProducto').show()"/>
+
+                    <p:menuitem value="Compras" icon="pi pi-fw pi-shopping-cart"
+                                outcome="compras"/>
+                </p:menubar>
+            </div>
+
+            <!-- Tabla de datos -->
+            <div class="card">
+                <p:dataTable value="#{productosController.productos}" var="producto"
+                             id="tabla-productos" widgetVar="tablaProductos"
+                             paginator="true" rows="10" paginatorPosition="bottom">
+                    <!-- Encabezado -->
+                    <f:facet name="header">
+                        <div class="flex justify-content-center flex-wrap card-container blue-container">
+                            <div class="flex align-items-center justify-content-center w-20rem h-4rem bg-blue-500 font-bold text-white border-round m-2">
+                                <h3>Gestión de Productos</h3>
+                            </div>
+                        </div>
+                    </f:facet>
+
+                    <!-- Columnas -->
+                    <p:column headerText="CÓDIGO" sortBy="#{producto.codigoProducto}">
+                        <h:outputText value="#{producto.codigoProducto}"/>
+                    </p:column>
+
+                    <p:column headerText="NOMBRE" sortBy="#{producto.nombreProducto}" filterBy="#{producto.nombreProducto}">
+                        <h:outputText value="#{producto.nombreProducto}"/>
+                    </p:column>
+
+                    <p:column headerText="DESCRIPCIÓN" sortBy="#{producto.descripcionProducto}">
+                        <h:outputText value="#{producto.descripcionProducto}"/>
+                    </p:column>
+
+                    <p:column headerText="PRECIO" sortBy="#{producto.precioProducto}">
+                        <h:outputText value="#{producto.precioProducto}">
+                            <f:convertNumber type="currency" currencySymbol="$"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="STOCK" sortBy="#{producto.stock}">
+                        <h:outputText value="#{producto.stock}"
+                                      style="#{producto.stock lt 10 ? 'color: red; font-weight: bold;' : (producto.stock lt 25 ? 'color: orange; font-weight: bold;' : 'color: green;')}"/>
+                    </p:column>
+
+                    <p:column headerText="ACCIONES" style="width: 200px;">
+                        <p:commandButton value="Editar" icon="pi pi-pencil"
+                                         class="ui-button-primary ui-button-sm"
+                                         update=":formulario-modal:ventana-producto"
+                                         process="@this" style="margin-right: 5px"
+                                         oncomplete="PF('VentanaModalProducto').show()">
+                            <f:setPropertyActionListener value="#{producto}"
+                                                         target="#{productosController.productoSeleccionado}"/>
+                            <p:resetInput target=":formulario-modal:ventana-producto"/>
+                        </p:commandButton>
+
+                        <p:commandButton value="Eliminar" icon="pi pi-trash"
+                                         class="ui-button-danger ui-button-sm"
+                                         process="@this"
+                                         oncomplete="PF('VentanaEliminarProducto').show()">
+                            <f:setPropertyActionListener value="#{producto}"
+                                                         target="#{productosController.productoSeleccionado}"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+        <!-- MODAL PARA AGREGAR/EDITAR PRODUCTO -->
+        <h:form id="formulario-modal">
+            <p:dialog header="#{productosController.productoSeleccionado.codigoProducto == null ? 'Nuevo Producto' : 'Editar Producto'}"
+                      showEffect="fade" modal="true" widgetVar="VentanaModalProducto"
+                      responsive="true" width="500">
+                <p:outputPanel id="ventana-producto" class="ui-fluid">
+                    <div class="field">
+                        <p:outputLabel for="nombreProducto">NOMBRE *</p:outputLabel>
+                        <p:inputText id="nombreProducto" required="true"
+                                     value="#{productosController.productoSeleccionado.nombreProducto}"
+                                     maxlength="64"/>
+                    </div>
+
+                    <div class="field">
+                        <p:outputLabel for="descripcionProducto">DESCRIPCIÓN</p:outputLabel>
+                        <p:inputTextarea id="descripcionProducto" rows="3"
+                                         value="#{productosController.productoSeleccionado.descripcionProducto}"
+                                         maxlength="64"/>
+                    </div>
+
+                    <div class="field">
+                        <p:outputLabel for="precioProducto">PRECIO *</p:outputLabel>
+                        <p:inputNumber id="precioProducto" required="true"
+                                       value="#{productosController.productoSeleccionado.precioProducto}"
+                                       symbol="$ " symbolPosition="p"
+                                       decimalSeparator="." thousandSeparator=","
+                                       decimalPlaces="2" minValue="0"/>
+                    </div>
+
+                    <div class="field">
+                        <p:outputLabel for="stock">STOCK *</p:outputLabel>
+                        <p:inputNumber id="stock" required="true"
+                                       value="#{productosController.productoSeleccionado.stock}"
+                                       decimalPlaces="0" minValue="0"/>
+                    </div>
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Guardar" icon="pi pi-check"
+                                     class="ui-button-primary"
+                                     process="ventana-producto @this"
+                                     actionListener="#{productosController.guardarProducto}"/>
+
+                    <p:commandButton value="Cancelar" icon="pi pi-times"
+                                     class="ui-button-secondary"
+                                     onclick="PF('VentanaModalProducto').hide()" type="button"/>
+                </f:facet>
+            </p:dialog>
+
+            <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR -->
+            <p:confirmDialog widgetVar="VentanaEliminarProducto" showEffect="fade"
+                             width="400" message="¿Está seguro de eliminar este producto?"
+                             header="Confirmar Eliminación" severity="warn">
+                <p:commandButton value="SÍ" icon="pi pi-check"
+                                 class="ui-button-danger"
+                                 process="@this"
+                                 actionListener="#{productosController.eliminarProducto}"
+                                 oncomplete="PF('VentanaEliminarProducto').hide()"/>
+
+                <p:commandButton value="NO" icon="pi pi-times"
+                                 class="ui-button-secondary"
+                                 onclick="PF('VentanaEliminarProducto').hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+    </div>
+</h:body>
+</html>

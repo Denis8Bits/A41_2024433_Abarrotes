@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+<h:head>
+    <title>Tienda Abarrotes - Compras/Ventas</title>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/primeflex.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/primeflex@latest/themes/primeone-dark.css"/>
+    <style>
+        .producto-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9f9f9;
+        }
+        .total-compra {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .stock-warning {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .stock-ok {
+            color: #28a745;
+        }
+    </style>
+</h:head>
+<h:body>
+    <div class="card">
+        <h:form id="formulario-compras">
+            <!-- Mensaje emergente -->
+            <p:growl id="mensaje_emergente" showDetails="true"/>
+
+            <!-- Barra de menus -->
+            <div class="card">
+                <p:menubar>
+                    <p:menuitem value="Inicio" icon="pi pi-fw pi-home"
+                                outcome="index"/>
+
+                    <p:menuitem value="Compras" icon="pi pi-fw pi-shopping-cart"
+                                update=":formulario-compras:tabla-compras"
+                                actionListener="#{comprasController.cargarDatos}"/>
+
+                    <p:menuitem value="Nueva Venta" icon="pi pi-fw pi-plus"
+                                actionListener="#{comprasController.nuevaCompra}"
+                                update=":formulario-modal:ventana-compra"
+                                oncomplete="PF('VentanaModalCompra').show()"/>
+
+                    <p:menuitem value="Productos" icon="pi pi-fw pi-box"
+                                outcome="productos"/>
+                </p:menubar>
+            </div>
+
+            <!-- Tabla de compras -->
+            <div class="card">
+                <p:dataTable value="#{comprasController.compras}" var="compra"
+                             id="tabla-compras" widgetVar="tablaCompras"
+                             paginator="true" rows="10" paginatorPosition="bottom">
+                    <!-- Encabezado -->
+                    <f:facet name="header">
+                        <div class="flex justify-content-center flex-wrap card-container green-container">
+                            <div class="flex align-items-center justify-content-center w-20rem h-4rem bg-green-500 font-bold text-white border-round m-2">
+                                <h3>Gestión de Ventas</h3>
+                            </div>
+                        </div>
+                    </f:facet>
+
+                    <!-- Columnas -->
+                    <p:column headerText="CÓDIGO" sortBy="#{compra.codigoCompra}" style="width: 80px;">
+                        <h:outputText value="#{compra.codigoCompra}"/>
+                    </p:column>
+
+                    <p:column headerText="FECHA" sortBy="#{compra.fechaCompra}">
+                        <h:outputText value="#{compra.fechaCompra}">
+                            <f:convertDateTime pattern="dd/MM/yyyy"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="HORA" sortBy="#{compra.horaCompra}">
+                        <h:outputText value="#{compra.horaCompra}">
+                            <f:convertDateTime pattern="HH:mm"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="CLIENTE" sortBy="#{compra.clienteNombre}" filterBy="#{compra.clienteNombre}">
+                        <h:outputText value="#{compra.clienteNombre}"/>
+                    </p:column>
+
+                    <p:column headerText="MÉTODO PAGO" sortBy="#{compra.metodoPago}">
+                        <h:outputText value="#{compra.metodoPago}"/>
+                    </p:column>
+
+                    <p:column headerText="TOTAL" sortBy="#{compra.totalCompra}">
+                        <h:outputText value="#{compra.totalCompra}" class="font-bold">
+                            <f:convertNumber type="currency" currencySymbol="$"/>
+                        </h:outputText>
+                    </p:column>
+
+                    <p:column headerText="ACCIONES" style="width: 200px;">
+                        <p:commandButton value="Ver" icon="pi pi-eye"
+                                         class="ui-button-info ui-button-sm"
+                                         update=":formulario-detalle:ventana-detalle"
+                                         process="@this" style="margin-right: 5px"
+                                         oncomplete="PF('VentanaDetalleCompra').show()"
+                                         actionListener="#{comprasController.verDetalleCompra}">
+                            <f:setPropertyActionListener value="#{compra}"
+                                                         target="#{comprasController.compraSeleccionada}"/>
+                        </p:commandButton>
+
+                        <p:commandButton value="Eliminar" icon="pi pi-trash"
+                                         class="ui-button-danger ui-button-sm"
+                                         process="@this"
+                                         oncomplete="PF('VentanaEliminarCompra').show()">
+                            <f:setPropertyActionListener value="#{compra}"
+                                                         target="#{comprasController.compraSeleccionada}"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </div>
+        </h:form>
+
+        <!-- MODAL PARA NUEVA COMPRA/VENTA -->
+        <h:form id="formulario-modal">
+            <p:dialog header="Nueva Venta" showEffect="fade" modal="true"
+                      widgetVar="VentanaModalCompra" responsive="true"
+                      width="800" height="600">
+                <p:outputPanel id="ventana-compra" class="ui-fluid">
+                    <!-- Información de la compra -->
+                    <div class="grid">
+                        <div class="col-6">
+                            <div class="field">
+                                <p:outputLabel for="clienteNombre">CLIENTE *</p:outputLabel>
+                                <p:inputText id="clienteNombre" required="true"
+                                             value="#{comprasController.compraSeleccionada.clienteNombre}"
+                                             placeholder="Nombre del cliente"/>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="field">
+                                <p:outputLabel for="metodoPago">MÉTODO DE PAGO</p:outputLabel>
+                                <p:selectOneMenu id="metodoPago"
+                                                 value="#{comprasController.compraSeleccionada.metodoPago}">
+                                    <f:selectItem itemLabel="Efectivo" itemValue="Efectivo"/>
+                                    <f:selectItem itemLabel="Tarjeta" itemValue="Tarjeta"/>
+                                    <f:selectItem itemLabel="Transferencia" itemValue="Transferencia"/>
+                                </p:selectOneMenu>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel para agregar productos -->
+                    <p:panel header="Agregar Productos" id="agregar-producto-panel">
+                        <div class="grid">
+                            <div class="col-8">
+                                <p:outputLabel for="productoSeleccion">PRODUCTO</p:outputLabel>
+                                <p:selectOneMenu id="productoSeleccion"
+                                                 value="#{comprasController.productoParaAgregar}"
+                                                 converter="productoConverter"
+                                                 filter="true" filterMatchMode="contains">
+                                    <f:selectItem itemLabel="-- Seleccionar Producto --" itemValue="#{null}"/>
+                                    <f:selectItems value="#{comprasController.productosConStock}"
+                                                   var="producto"
+                                                   itemLabel="#{producto.nombreProducto} (Stock: #{producto.stock}) - $#{producto.precioProducto}"
+                                                   itemValue="#{producto}"/>
+                                </p:selectOneMenu>
+                            </div>
+                            <div class="col-2">
+                                <p:outputLabel for="cantidadAgregar">CANTIDAD</p:outputLabel>
+                                <p:inputNumber id="cantidadAgregar"
+                                               value="#{comprasController.cantidadParaAgregar}"
+                                               decimalPlaces="0" minValue="1"/>
+                            </div>
+                            <div class="col-2 flex align-items-end">
+                                <p:commandButton value="Agregar" icon="pi pi-plus"
+                                                 class="ui-button-success"
+                                                 actionListener="#{comprasController.agregarProductoACompra}"
+                                                 update="panel-productos-seleccionados, total-compra, agregar-producto-panel, :formulario-modal:ventana-compra:mensaje-modal"/>
+                            </div>
+                        </div>
+                    </p:panel>
+
+                    <!-- Mensajes dentro del modal -->
+                    <p:messages id="mensaje-modal" showDetail="true"/>
+
+                    <!-- Lista de productos seleccionados -->
+                    <p:panel header="Productos en la Venta" id="panel-productos-seleccionados"
+                             style="margin-top: 10px;">
+                        <p:dataTable value="#{comprasController.detallesCompra}" var="detalle"
+                                     emptyMessage="No hay productos agregados a la venta"
+                                     style="margin-bottom: 10px;">
+                            <p:column headerText="Producto">
+                                <h:outputText value="#{detalle.producto.nombreProducto}"/>
+                            </p:column>
+                            <p:column headerText="Precio Unit." style="width: 100px;">
+                                <h:outputText value="#{detalle.precioUnitario}">
+                                    <f:convertNumber type="currency" currencySymbol="$"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Cantidad" style="width: 120px;">
+                                <p:inputNumber value="#{detalle.cantidad}"
+                                               decimalPlaces="0" minValue="1"
+                                               max="#{detalle.producto.stock}">
+                                    <p:ajax event="change"
+                                            listener="#{comprasController.actualizarCantidadDetalle(detalle)}"
+                                            update="panel-productos-seleccionados, total-compra"/>
+                                </p:inputNumber>
+                            </p:column>
+                            <p:column headerText="Subtotal" style="width: 100px;">
+                                <h:outputText value="#{detalle.subtotal}" class="font-bold">
+                                    <f:convertNumber type="currency" currencySymbol="$"/>
+                                </h:outputText>
+                            </p:column>
+                            <p:column headerText="Acción" style="width: 80px;">
+                                <p:commandButton icon="pi pi-trash"
+                                                 class="ui-button-danger ui-button-sm"
+                                                 actionListener="#{comprasController.removerProductoDeCompra(detalle)}"
+                                                 update="panel-productos-seleccionados, total-compra"
+                                                 title="Remover producto"/>
+                            </p:column>
+                        </p:dataTable>
+
+                        <!-- Total de la compra -->
+                        <div class="text-right" id="total-compra">
+                            <h4 class="total-compra">
+                                TOTAL: <h:outputText value="#{comprasController.totalCompra}">
+                                <f:convertNumber type="currency" currencySymbol="$"/>
+                            </h:outputText>
+                            </h4>
+                            <p class="mt-2">
+                                <strong>Resumen:</strong> #{comprasController.resumenCompra}
+                            </p>
+                        </div>
+                    </p:panel>
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Procesar Venta" icon="pi pi-check"
+                                     class="ui-button-success"
+                                     process="ventana-compra @this"
+                                     actionListener="#{comprasController.guardarCompra}"
+                                     disabled="#{comprasController.compraVacia}"/>
+
+                    <p:commandButton value="Cancelar" icon="pi pi-times"
+                                     class="ui-button-secondary"
+                                     onclick="PF('VentanaModalCompra').hide()"
+                                     type="button"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <!-- MODAL DE DETALLE DE COMPRA -->
+        <h:form id="formulario-detalle">
+            <p:dialog header="Detalle de Venta ##{comprasController.compraSeleccionada.codigoCompra}"
+                      showEffect="fade" modal="true"
+                      widgetVar="VentanaDetalleCompra" responsive="true" width="700">
+                <p:outputPanel id="ventana-detalle" class="ui-fluid">
+                    <!-- Información de la compra -->
+                    <div class="grid">
+                        <div class="col-6">
+                            <h5>Información de la Venta</h5>
+                            <p><strong>Cliente:</strong> #{comprasController.compraSeleccionada.clienteNombre}</p>
+                            <p><strong>Fecha:</strong>
+                                <h:outputText value="#{comprasController.compraSeleccionada.fechaCompra}">
+                                    <f:convertDateTime pattern="dd/MM/yyyy"/>
+                                </h:outputText>
+                            </p>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="text-right">Totales</h5>
+                            <p class="text-right"><strong>Hora:</strong>
+                                <h:outputText value="#{comprasController.compraSeleccionada.horaCompra}">
+                                    <f:convertDateTime pattern="HH:mm"/>
+                                </h:outputText>
+                            </p>
+                            <p class="text-right"><strong>Método de Pago:</strong> #{comprasController.compraSeleccionada.metodoPago}</p>
+                        </div>
+                    </div>
+
+                    <p:separator style="margin: 15px 0;"/>
+
+                    <!-- Detalle de productos -->
+                    <h5>Productos Vendidos</h5>
+                    <p:dataTable value="#{comprasController.compraSeleccionada.detalles}" var="detalle"
+                                 emptyMessage="No hay detalles disponibles">
+                        <p:column headerText="Producto">
+                            <h:outputText value="#{detalle.producto.nombreProducto}"/>
+                        </p:column>
+                        <p:column headerText="Precio Unitario">
+                            <h:outputText value="#{detalle.precioUnitario}">
+                                <f:convertNumber type="currency" currencySymbol="$"/>
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Cantidad" style="text-align: center;">
+                            <h:outputText value="#{detalle.cantidad}"/>
+                        </p:column>
+                        <p:column headerText="Subtotal">
+                            <h:outputText value="#{detalle.subtotal}" class="font-bold">
+                                <f:convertNumber type="currency" currencySymbol="$"/>
+                            </h:outputText>
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:separator style="margin: 15px 0;"/>
+
+                    <!-- Total final -->
+                    <div class="text-right">
+                        <h3 class="total-compra">
+                            TOTAL PAGADO: <h:outputText value="#{comprasController.compraSeleccionada.totalCompra}">
+                            <f:convertNumber type="currency" currencySymbol="$"/>
+                        </h:outputText>
+                        </h3>
+                    </div>
+                </p:outputPanel>
+
+                <f:facet name="footer">
+                    <p:commandButton value="Imprimir Ticket" icon="pi pi-print"
+                                     class="ui-button-info"
+                                     onclick="window.print()" type="button"/>
+
+                    <p:commandButton value="Cerrar" icon="pi pi-times"
+                                     class="ui-button-secondary"
+                                     onclick="PF('VentanaDetalleCompra').hide()"
+                                     type="button"/>
+                </f:facet>
+            </p:dialog>
+        </h:form>
+
+        <!-- MODAL DE CONFIRMACIÓN PARA ELIMINAR COMPRA -->
+        <h:form id="formulario-eliminar">
+            <p:confirmDialog widgetVar="VentanaEliminarCompra" showEffect="fade"
+                             width="400" message="¿Está seguro de eliminar esta venta? Esta acción restaurará el stock de los productos."
+                             header="Confirmar Eliminación" severity="warn">
+                <p:commandButton value="SÍ, ELIMINAR" icon="pi pi-check"
+                                 class="ui-button-danger"
+                                 process="@this"
+                                 actionListener="#{comprasController.eliminarCompra}"
+                                 oncomplete="PF('VentanaEliminarCompra').hide()"/>
+
+                <p:commandButton value="CANCELAR" icon="pi pi-times"
+                                 class="ui-button-secondary"
+                                 onclick="PF('VentanaEliminarCompra').hide()"
+                                 type="button"/>
+            </p:confirmDialog>
+        </h:form>
+    </div>
+</h:body>
+</html>
